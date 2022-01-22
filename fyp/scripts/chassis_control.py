@@ -23,7 +23,11 @@ def motorControl(speedL, speedR):
 
     print(ser)
     while(1):
-        message = "#Baffff040,000,000,000"
+        message="#Ba%s%s%s%s%03d,%03d,%03d,%03d" % (('r' if motorL >= 0 else 'f'), 
+          ('r' if motorL >= 0 else 'f'), 
+          ('r' if motorR >= 0 else 'f'), 
+          ('r' if motorR >= 0 else 'f'), 
+          abs(motorL),abs(motorL),abs(motorR), abs(motorR))
         msg_encode = message.encode('ascii')
         print(msg_encode.hex())
         ser.write(msg_encode)
