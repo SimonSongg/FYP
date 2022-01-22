@@ -25,14 +25,19 @@ def callbackSpeed(data):
 def motorControl(speedL, speedR):
     
 
-    print(ser)
+    #print(ser)
     while(1):
-        message="#Ba%s%s%s%s%03d,%03d,%03d,%03d" % (('r' if motorL >= 0 else 'f'), 
-          ('r' if motorL >= 0 else 'f'), 
-          ('r' if motorR >= 0 else 'f'), 
-          ('r' if motorR >= 0 else 'f'), 
-          abs(motorL),abs(motorL),abs(motorR), abs(motorR))
+        message="#Ba%s%s%s%s%03d,%03d,%03d,%03d" % (('r' if speedL >= 0 else 'f'), 
+          ('r' if speedL >= 0 else 'f'), 
+          ('r' if speedR >= 0 else 'f'), 
+          ('r' if speedR >= 0 else 'f'), 
+          abs(speedL),abs(speedL),abs(speedR), abs(speedR))
         msg_encode = message.encode('ascii')
         print(msg_encode.hex())
         ser.write(msg_encode)
-        print("1")
+        print(message)
+        
+        
+if __name__ == "__main__":
+     rospy.Subscriber('speed_info', Vector3, callbackSpeed)
+     rospy.Timer(rospy.Duration(0.1), motorControl(motorL,motorR), False)
