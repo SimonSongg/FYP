@@ -10,7 +10,7 @@ os.system('echo %s | sudo -S %s' % ('20001007', 'chmod 777 /dev/ttyTHS0'))
 pub = rospy.Publisher('motor', Vector3, queue_size=5)
 ser = serial.Serial("/dev/ttyTHS0", 57600, timeout=2)
 
-motorL = 10.0
+motorL = 0.0
 motorR = 0.0
 
 

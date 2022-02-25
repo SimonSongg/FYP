@@ -163,6 +163,7 @@ include_directories(
  catkin_install_python(PROGRAMS
    scripts/chassis_control.py
    scripts/uwb.py
+   scripts/uwb_localization_ros.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
