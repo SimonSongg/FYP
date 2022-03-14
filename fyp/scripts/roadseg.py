@@ -7,7 +7,7 @@ from models.sne_model import SNE
 import torchvision.transforms as transforms
 import torch
 import numpy as np
-import pyrealsense2.pyrealsense2 as rs
+import pyrealsense2 as rs
 import cv2
 import os
 import time
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
                 pred = model.netRoadSeg(rgb_image, normal_image)
                 time_end = time.time()
-                palet_file = './datasets/palette.txt'
+                palet_file = '/home/simon/catkin_ws/src/fyp/scripts/datasets/palette.txt'
                 impalette = list(np.genfromtxt(palet_file, dtype=np.uint8).reshape(3 * 256))
                 pred_img = tensor2labelim(pred, impalette)
                 pred_img = cv2.resize(pred_img, oriSize)

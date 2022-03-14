@@ -1,0 +1,1 @@
+sudo python3 ../run_test_gpu_nosne.py --dataroot examples --name nosne --epoch best

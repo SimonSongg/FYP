@@ -1,0 +1,35 @@
+----------------- Options ---------------
+               batch_size: 2                             
+                    beta1: 0.5                           
+          checkpoints_dir: ./checkpoints                 
+           continue_train: False                         
+                 dataroot: datasets/kitti                	[default: None]
+                  dataset: kitti                         
+                    epoch: latest                        
+              epoch_count: 1                             
+                  gpu_ids: 0                             
+                init_gain: 0.02                          
+                init_type: kaiming                       
+                  isTrain: True                          	[default: None]
+                lambda_L1: 100.0                         
+                       lr: 0.001                         
+          lr_decay_epochs: 25                            
+           lr_decay_iters: 5000000                       
+                 lr_gamma: 0.9                           
+                lr_policy: lambda                        
+                    model: roadseg                       
+                 momentum: 0.9                           
+                     name: kitti                         	[default: experiment_name]
+                   nepoch: 1000                          
+                     norm: instance                      
+              num_threads: 8                             
+                    phase: train                         
+               print_freq: 10                            
+                     seed: 0                             
+           serial_batches: False                         
+                useHeight: 384                           
+                 useWidth: 1248                          
+                  use_sne: True                          	[default: False]
+                  verbose: False                         
+             weight_decay: 0.0005                        
+----------------- End -------------------
