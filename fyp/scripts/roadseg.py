@@ -155,6 +155,7 @@ if __name__ == '__main__':
                 impalette = list(np.genfromtxt(palet_file, dtype=np.uint8).reshape(3 * 256))
                 pred_img = tensor2labelim(pred, impalette)
                 pred_img = cv2.resize(pred_img, oriSize)
+                
                 # prob_map = tensor2confidencemap(pred)
                 # prob_map = cv2.resize(prob_map, oriSize)
 
