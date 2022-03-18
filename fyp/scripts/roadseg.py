@@ -161,13 +161,13 @@ if __name__ == '__main__':
 
                 # Show images
                 if True:
-                    cv2.namedWindow('pred_img', cv2.WINDOW_AUTOSIZE)
-                    cv2.imshow('pred_img', pred_img)
+                    #cv2.namedWindow('pred_img', cv2.WINDOW_AUTOSIZE)
+                    #cv2.imshow('pred_img', pred_img)
                     publish_image(pred_img)
 
                     # cv2.namedWindow('prob_map', cv2.WINDOW_AUTOSIZE)
                     # cv2.imshow('prob_map', prob_map)
-                    cv2.waitKey(1)
+                    #cv2.waitKey(1)
 
                 print('total cost: ', time_end - time_start)
                 print('fps: ', 1 / (time_end - time_start))
