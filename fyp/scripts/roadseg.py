@@ -13,6 +13,7 @@ import os
 import time
 import torch.nn.functional as F
 import sys
+from torch2trt import TRTModule
 
 #Define the size of the published image
 IMAGE_HEIGHT = 720
@@ -22,6 +23,7 @@ from std_msgs.msg import Header
 from sensor_msgs.msg import Image
 rospy.init_node("segPublisher", anonymous=True)
 pub = rospy.Publisher('segMask', Image, queue_size = 5)
+
 
 def publish_image(imgdata):
     image_temp=Image()
@@ -70,8 +72,8 @@ if __name__ == '__main__':
         print("The demo requires Depth camera with Color sensor")
         exit(0)
 
-    config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 5)
-    config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 5)
+    config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
+    config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
 
     # Start streaming
     pipeline.start(config)
@@ -150,6 +152,7 @@ if __name__ == '__main__':
                 # test = torch.zeros((1,3,384,1248), device="cuda")
 
                 pred = model.netRoadSeg(rgb_image, normal_image)
+                print(pred.shape)
                 time_end = time.time()
                 palet_file = '/home/simon/catkin_ws/src/fyp/scripts/datasets/palette.txt'
                 impalette = list(np.genfromtxt(palet_file, dtype=np.uint8).reshape(3 * 256))
@@ -161,13 +164,13 @@ if __name__ == '__main__':
 
                 # Show images
                 if True:
-                    cv2.namedWindow('pred_img', cv2.WINDOW_AUTOSIZE)
-                    cv2.imshow('pred_img', pred_img)
+                    #cv2.namedWindow('pred_img', cv2.WINDOW_AUTOSIZE)
+                    #cv2.imshow('pred_img', pred_img)
                     publish_image(pred_img)
 
                     # cv2.namedWindow('prob_map', cv2.WINDOW_AUTOSIZE)
                     # cv2.imshow('prob_map', prob_map)
-                    cv2.waitKey(1)
+                    #cv2.waitKey(1)
 
                 print('total cost: ', time_end - time_start)
                 print('fps: ', 1 / (time_end - time_start))

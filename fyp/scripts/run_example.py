@@ -61,7 +61,6 @@ if __name__ == '__main__':
     rgb_image = transforms.ToTensor()(rgb_image).unsqueeze(dim=0)
     normal_image = transforms.ToTensor()(normal_image).unsqueeze(dim=0)
 with torch.no_grad():
-    while 1:
         time_start = time.time()
         pred = model.netRoadSeg(rgb_image, normal_image)
         time_end = time.time()
