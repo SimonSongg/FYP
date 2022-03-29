@@ -8,16 +8,27 @@ import cv2
 import os
 import numpy as np
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import Float64MultiArray
 pub = rospy.Publisher('speed_info', Vector3, queue_size = 5)
 current_frame = np.zeros((720,1280))
-
+ultraDistance = [0.0,0.0,0.0,0.0]
+image_x = 0.0
+image_y = 0.0
 #区域划分参数
 CENTRAL_LEFT = 0.125
 CENTRAL_RIGHT = 1 - CENTRAL_LEFT
 LEFTSIDE = 0.4
 RIGHTSIDE = 1 - LEFTSIDE
 
-POSITIVE_PARTIAL = 0.3
+POSITIVE_PARTIAL = 0.35
+
+def callbackUltra(ultra):
+    global ultraDistance
+    
+    ultraDistance[0] = ultra.data[0]
+    ultraDistance[1] = ultra.data[1]
+    ultraDistance[2] = ultra.data[2]
+    ultraDistance[3] = ultra.data[3]
 
 def callback(data):
     global current_frame
@@ -30,10 +41,10 @@ def callback(data):
     current_frame = br.imgmsg_to_cv2(data)
     print(current_frame[360,720])
 
-    cv2.imshow("camera", current_frame)
+    #cv2.imshow("camera", current_frame)
     #print(current_frame[680, 630:650 ])
 
-    cv2.waitKey(1)
+    #cv2.waitKey(1)
     image_processor()
 
 def image_processor():
@@ -66,31 +77,54 @@ def image_processor():
             all_counter = all_counter + nonzerocol
         average = weighted_sum / all_counter
         average_percent = float((average - 640.0) / 1280.0)
-        if average_percent > 0:
-            percentageReverse = 0.035 / (0.1 + average_percent) - 0.1
-        elif average_percent < 0:
-            percentageReverse = -(0.035 / (0.1 - average_percent)) + 0.1
+        # if average_percent > 0:
+        #     percentageReverse = 0.035 / (0.1 + average_percent) - 0.1
+        # elif average_percent < 0:
+        #     percentageReverse = -(0.035 / (0.1 - average_percent)) + 0.1
         speed_adjust = float(float(nonzero) / (1280.0*(1.0-2.0*CENTRAL_LEFT)*360.0))
         print("average is %f" %average)
         print("average percent is %f" %average_percent)
-        print("reverse average percent is %f" %percentageReverse)
+        #print("reverse average percent is %f" %percentageReverse)
         print("speed adjust is %f" %speed_adjust)
         publish_data.x = 15+average_percent*100
         publish_data.y = 15-average_percent*100
         publish_data.z = 0
         pub.publish(publish_data)
     else:
+        nonzeroleft = cv2.countNonZero(grey_img[360:720, 0:int(1280*LEFTSIDE)])
+        nonzeroright = cv2.countNonZero(grey_img[360:720, int(1280*RIGHTSIDE):1280])
+        if nonzeroleft <= 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05) and nonzeroright <= 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05):
+            publish_data.x = 0
+            publish_data.y = 0
+            publish_data.z = 0
+            pub.publish(publish_data)
+            print('too close')
+        elif nonzeroleft > 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05) and nonzeroright <= 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05):
+            publish_data.x = -10
+            publish_data.y = 30
+            publish_data.z = 0
+            pub.publish(publish_data)
+            print('LEFT!!')
+        elif nonzeroleft <= 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05) and nonzeroright > 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05):
+            publish_data.x = 30
+            publish_data.y = -10
+            publish_data.z = 0
+            pub.publish(publish_data)
+            print('RIGHT!!')
+        else:
+            publish_data.x = 30 if nonzeroleft < nonzeroright else -10
+            publish_data.y = -10 if nonzeroleft < nonzeroright else 30
+            publish_data.z = 0
+            pub.publish(publish_data)
+            print('%s' % ('RIGHT!!' if nonzeroleft < nonzeroright else 'LEFT!!' ))
+
         
-        publish_data.x = 0
-        publish_data.y = 0
-        publish_data.z = 0
-        pub.publish(publish_data)
-        print('too close')
         
 
 def listener():
     rospy.init_node("video_sub_py", anonymous=True)
     rospy.Subscriber("segMask", Image, callback)
+    rospy.Subscriber("UltraDistanceFront", Float64MultiArray, callbackUltra)
     #rospy.Timer(rospy.Duration(0.1), image_processor, False)
     rospy.spin()
 

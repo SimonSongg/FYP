@@ -4,9 +4,9 @@ import os
 import rospy
 from std_msgs.msg import Float64MultiArray
 
-os.system('echo %s | sudo -S %s' % ('20001007', 'chmod 777 /dev/ttyUSB1'))
+os.system('echo %s | sudo -S %s' % ('20001007', 'chmod 777 /dev/ttyUSB2'))
 
-ser_front = serial.Serial("/dev/ttyUSB1",9600,timeout=0.3)
+ser_front = serial.Serial("/dev/ttyUSB2",9600,timeout=0.3)
 
 
 state = 0 

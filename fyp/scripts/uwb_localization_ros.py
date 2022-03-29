@@ -38,23 +38,23 @@ anchorArray[0].x=0
 
 anchorArray[0].y=0
 
-anchorArray[0].z=2
+anchorArray[0].z=1.8
 
 
 
-anchorArray[1].x=0.87
+anchorArray[1].x=2.1
 
-anchorArray[1].y=0
+anchorArray[1].y=-1.55
 
-anchorArray[1].z=2
+anchorArray[1].z=1.8
 
 
 
-anchorArray[2].x=0
+anchorArray[2].x=7.66
 
-anchorArray[2].y=1.97
+anchorArray[2].y=2.78
 
-anchorArray[2].z=2
+anchorArray[2].z=1.8
 
 #ROS publisher init
 pub = rospy.Publisher('uwb_position', Vector3, queue_size = 5)
@@ -76,11 +76,11 @@ def calculatePosition(event):
     #print(location.x)
 
     result=pDll.GetLocation(byref(location),0,anchorArray,distanceArray)
-    print(location.x)
+    print("x:%f" %location.x)
     position_data.x = location.x
-    print(location.y)
+    print("y:%f" %location.y)
     position_data.y = location.y
-    print(location.z)
+    print("z:%f\n" %location.z)
     position_data.z = location.z
     pub.publish(position_data)
 

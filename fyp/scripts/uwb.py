@@ -8,11 +8,11 @@ from std_msgs.msg import Int64MultiArray
 #from geometry_msgs.msg import Vector3
 data_array = [0,0,0,0,0]
 uwb_data = Uwb_info()
-os.system('echo %s | sudo -S %s' % ('20001007', 'chmod 777 /dev/ttyUSB0'))
+os.system('echo %s | sudo -S %s' % ('20001007', 'chmod 777 /dev/ttyUSB2'))
 pub = rospy.Publisher('uwbArray', Int64MultiArray, queue_size = 5)
 rospy.init_node('UWBPublisher', anonymous = False)
 
-ser = serial.Serial("/dev/ttyUSB0",115200,timeout=2)
+ser = serial.Serial("/dev/ttyUSB2",115200,timeout=2)
 
 while not rospy.is_shutdown():
     line = ser.readline()
