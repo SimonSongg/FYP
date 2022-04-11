@@ -56,6 +56,7 @@ def callbackCurrentPos(pos):
     global grid
     global cost
     global heuristic
+    print('received')
     x_ceil = 0
     y_ceil = 0
     x_floor = 0
@@ -88,12 +89,15 @@ def callbackCurrentPos(pos):
     else:
         usepos[0] = x_ceil
         usepos[1] = y_floor
-        
-    a = search(grid,usepos,finalTarget,cost,heuristic)
-    pubdata = Pose2D()
-    pubdata.x = a[1][0]
-    pubdata.y = a[1][1]
-    pub.publish(pubdata)
+    if usepos == finalTarget:
+        print('arrived target')
+    else:
+        a = search(grid,usepos,finalTarget,cost,heuristic)
+        pubdata = Vector3()
+        pubdata.x = a[1][0]
+        pubdata.y = a[1][1]
+        print(pubdata)
+        pub.publish(pubdata)
     
     
 #function to search the path
@@ -164,4 +168,5 @@ if __name__ == "__main__":
      pub = rospy.Publisher('nextPos', Vector3, queue_size = 5)
      rospy.Subscriber('uwb_position', Vector3, callbackCurrentPos)
      rospy.Subscriber('finalTarget', Pose2D, callbackTarget)
+     rospy.spin()
 
