@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-from logging import PlaceHolder
-import rospy
-from geometry_msgs.msg import Vector3,Pose2D
-from std_msgs.msg import Float64MultiArray
 import math
+from logging import PlaceHolder
+
+import rospy
+from geometry_msgs.msg import Pose2D, Vector3
+from std_msgs.msg import Float64MultiArray
+
 import MemapAStar
 
 pub = rospy.Publisher('speed_info', Vector3, queue_size = 5)
@@ -25,7 +27,15 @@ nowpos_y = 0.0
 ultraDistance = [0,0,0,0]
 yaw = 0.0
 nextPos = [0,0]
-isTargetReached = True  # 是否到达目的地坐标
+nextPos2 = [0,0]
+isTargetReached = False  # 是否到达目的地坐标
+# 内部处理的值
+realYaw = 0.0
+targetYaw = 0.0
+errorYaw = 0.0
+lastErrorYaw = 0.0
+integrationErrorYaw = 0.0
+differenceErrorYaw = 0.0
 
 # def callbackUltra(ultra):
 #     global ultraDistance
@@ -34,6 +44,12 @@ isTargetReached = True  # 是否到达目的地坐标
 #     ultraDistance[1] = ultra.data[1]
 #     ultraDistance[2] = ultra.data[2]
 #     ultraDistance[3] = ultra.data[3]
+def constrain(val, min_val, max_val):
+    if val < min_val:
+        return min_val
+    if val > max_val:
+        return max_val
+    return val
 def callbackYaw(data):
     global yaw
     if (data.theta <= math.pi):
@@ -48,7 +64,7 @@ def callbackCurrentPos(pos):
     nowpos_x = pos.x
     nowpos_y = pos.y
     
-def callbackPosition(data):
+def callbackTarget(data):
     global tarpos_x
     global tarpos_y
     
@@ -58,15 +74,6 @@ def callbackPosition(data):
 def steeringControl(event):
     idontknow = 0.0
     
-def tempTarget(event):
-    global nowpos_x
-    global nowpos_y
-    global tarpos_x
-    global tarpos_y
-    global nextPos
-    
-    memap.aStar((nowpos_x,nowpos_y),(tarpos_x,tarpos_y))
-    nextPos = memap.findRoute()[1]
 def controlPID(event):
     # 参数
 
@@ -79,6 +86,12 @@ def controlPID(event):
     # 订阅的值
     global isTargetReached
     global yaw
+    global nowpos_x
+    global nowpos_y
+    global tarpos_x
+    global tarpos_y
+    global nextPos
+    global nextPos2
 
     #内部处理的值
     global realYaw
@@ -93,8 +106,8 @@ def controlPID(event):
         rospy.loginfo("Car is still on the way to next node.")
 
         # 进行一些计算更新值
-        realYaw = yaw + MAG_YAW_OFFSET
-        targetYaw = math.atan2(longitude - targetLongitude, targetLatitude - latitude)
+        realYaw = yaw #+ MAG_YAW_OFFSET 这个需要到时候再定！！！！！！！
+        targetYaw = math.atan2(tarpos_y - nowpos_y, tarpos_x - nowpos_x)
         lastErrorYaw = errorYaw
         errorYaw = targetYaw - realYaw
         integrationErrorYaw = errorYaw + integrationErrorYaw
@@ -102,27 +115,21 @@ def controlPID(event):
         outputTurnByGPS = errorYaw * PID_P_FACTOR + integrationErrorYaw * PID_I_FACTOR + differenceErrorYaw * PID_D_FACTOR
         
         # 打印
-        rospy.loginfo("latitude:%f\tlongitude:%f" % (latitude, longitude))
-        rospy.loginfo("targetLa:%f\ttargetLo:%f" % (targetLatitude, targetLongitude,))
+        rospy.loginfo("x:%f\ty:%f" % (nowpos_x, nowpos_y))
+        rospy.loginfo("targetX:%f\ttargetY:%f" % (tarpos_x, tarpos_y))
         rospy.loginfo("realYaw:%f\ttarYaw:%f\terYaw:%f" % (realYaw, targetYaw, errorYaw))
         rospy.loginfo("outputTurnByGPS:%f" % (outputTurnByGPS))
 
-        # 雷达
-        radarFactor, radarTurn, isEmStop = controlRadar()
-
-        # 打印
-        rospy.loginfo("rdFactor:%f\trdTurn:%f\trdIsEM:%f" % (radarFactor, radarTurn, isEmStop))
-
         # 输出
-        outputX = FORWARD_SPEED_MAX_PERCENT * (1 - radarFactor)
-        outputY = (constrain(outputTurnByGPS, -99, 99) * (1 - radarFactor) + radarTurn * radarFactor)
+        #outputX = FORWARD_SPEED_MAX_PERCENT * (1 - radarFactor)
+        outputX = constrain(outputTurnByGPS, -99, 99) 
         vector3 = Vector3()
-        vector3.x = outputX
-        vector3.y = outputY
-        if isEmStop:
-            vector3.z = 1.0
-        else:
-            vector3.z = 0.0
+        vector3.x = 15 + outputX*0.5
+        vector3.y = 15 + outputX*0.5
+        # if isEmStop:
+        #     vector3.z = 1.0
+        # else:
+        #     vector3.z = 0.0
 
         # 打印
         rospy.loginfo("fnOutX:%f\tfnOutY:%f\tfnOutEm:%f" % (vector3.x, vector3.y, False if vector3.z == 0 else True))
@@ -131,10 +138,10 @@ def controlPID(event):
         pub.publish(vector3)
 
         # 检测是否到达
-        distance = math.sqrt(math.pow(abs(targetLatitude - latitude) * LATITUDE_TO_DISTANCE_FACTOR, 2) + math.pow(abs(targetLongitude - longitude) * LONGITUDE_TO_DISTANCE_FACTOR, 2))
+        #distance = math.sqrt(math.pow(abs(targetLatitude - latitude) * LATITUDE_TO_DISTANCE_FACTOR, 2) + math.pow(abs(targetLongitude - longitude) * LONGITUDE_TO_DISTANCE_FACTOR, 2))
 
         # 打印
-        rospy.loginfo("isTargetReached:%s\tdistanceLeft:%f" % (isTargetReached, distance))
+        rospy.loginfo("isTargetReached:%s" % (isTargetReached))
 
     else:
         rospy.loginfo("Car has reached its destination.")
@@ -148,7 +155,7 @@ def controlPID(event):
 
 if __name__ == "__main__":
      rospy.init_node('steering')
-     rospy.Subscriber('target', Vector3, callbackPosition)
+     rospy.Subscriber('nextPos', Vector3, callbackTarget)
      rospy.Subscriber('uwb_position', Vector3, callbackCurrentPos)
      # rospy.Subscriber('UltraDistanceFront', Float64MultiArray, callbackUltra)
      rospy.Subscriber('mag_pose_2d', Pose2D, callbackYaw)                #订阅包含磁方向的Yaw角数据

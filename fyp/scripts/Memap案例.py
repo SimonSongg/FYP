@@ -16,15 +16,23 @@ memap = MemapAStar.Memap(r'pointcloud.xlsx')
 #addRoute方法接收两个参数
 #用于在两个点之间创建一条路径（人工补齐地图缺损的位置）
 #无返回值
-memap.addRoute((2,6),(3,6))
-memap.addRoute((2,4),(3,4))
-memap.addRoute((5,4),(6,4))
+# memap.addRoute((2,6),(3,6))
+# memap.addRoute((2,4),(3,4))
+# memap.addRoute((5,4),(6,4))
+memap.addRoute((1,1),(2,1))
+memap.addRoute((2,1),(3,1))
+memap.addRoute((3,1),(4,1))
+memap.addRoute((1,1),(2,2))
+memap.addRoute((2,2),(3,3))
+memap.addRoute((3,3),(4,4))
+memap.addRoute((4,4),(5,9))
+
 
 
 #aStar方法接收两个参数
 #寻找到这两个点的相对最优路径
 #无返回值
-memap.aStar((1,1),(7,9))
+memap.aStar((1,1),(5,9))
 
 
 #findRoute方法没有参数
