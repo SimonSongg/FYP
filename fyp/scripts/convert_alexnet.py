@@ -7,7 +7,7 @@ import torchvision.models as models
 from torchvision.models.alexnet import alexnet
 input_name = ['x','y']
 output_name = ['outputimg']
-pthfile = '/home/simon/Downloads/best_net_RoadSeg.pth'
+pthfile = '/home/simon/catkin_ws/src/fyp/scripts/checkpoints/0330_test/best_net_RoadSeg.pth'
 model = RoadSeg(2,False)
 model.load_state_dict(torch.load(pthfile))
 model.eval().cuda()
@@ -17,4 +17,4 @@ y = torch.ones((1,1,384,1248)).cuda()
 
 outputimg = torch.ones((1,2,384,1248)).cuda()
 
-torch.onnx.export(model, (x,y), '0328.onnx', input_names=input_name, output_names=output_name, verbose=True,opset_version=11)
+torch.onnx.export(model, (x,y), '0330_1.onnx', input_names=input_name, output_names=output_name, verbose=True,opset_version=11)

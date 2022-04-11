@@ -165,9 +165,10 @@ if __name__ == '__main__':
             pred_img = tensor2labelim(output_data, impalette)
             pred_img = cv2.resize(pred_img,(1280,720))
             #cv2.imshow('result',pred_img)
-
+            img_add = cv2.addWeighted(pred_img, 0.5, rgb_image, 0.5, 0)
+            cv2.imshow('result',img_add)
             publish_image(pred_img)
-            #cv2.waitKey(1)
+            cv2.waitKey(1)
             
     finally:
         # Stop streaming

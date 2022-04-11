@@ -20,7 +20,7 @@ CENTRAL_RIGHT = 1 - CENTRAL_LEFT
 LEFTSIDE = 0.4
 RIGHTSIDE = 1 - LEFTSIDE
 
-POSITIVE_PARTIAL = 0.35
+POSITIVE_PARTIAL = 0.3
 
 def callbackUltra(ultra):
     global ultraDistance
@@ -100,20 +100,20 @@ def image_processor():
             pub.publish(publish_data)
             print('too close')
         elif nonzeroleft > 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05) and nonzeroright <= 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05):
-            publish_data.x = -10
-            publish_data.y = 30
+            publish_data.x = -5
+            publish_data.y = 25
             publish_data.z = 0
             pub.publish(publish_data)
             print('LEFT!!')
         elif nonzeroleft <= 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05) and nonzeroright > 360*1280*LEFTSIDE*(POSITIVE_PARTIAL-0.05):
-            publish_data.x = 30
-            publish_data.y = -10
+            publish_data.x = 25
+            publish_data.y = -5
             publish_data.z = 0
             pub.publish(publish_data)
             print('RIGHT!!')
         else:
-            publish_data.x = 30 if nonzeroleft < nonzeroright else -10
-            publish_data.y = -10 if nonzeroleft < nonzeroright else 30
+            publish_data.x = 25 if nonzeroleft < nonzeroright else -5
+            publish_data.y = -5 if nonzeroleft < nonzeroright else 25
             publish_data.z = 0
             pub.publish(publish_data)
             print('%s' % ('RIGHT!!' if nonzeroleft < nonzeroright else 'LEFT!!' ))
