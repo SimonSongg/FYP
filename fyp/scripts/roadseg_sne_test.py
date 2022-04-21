@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from models import sne_model
 from options.test_options import TestOptions
 from models import create_model
 from util.util import tensor2labelim, tensor2confidencemap
@@ -17,6 +18,8 @@ from torch2trt import TRTModule
 import pycuda.autoinit
 import tensorrt as trt
 import pycuda.driver as cuda
+from models.sne_model import SNE
+
 
 #Define the size of the published image
 IMAGE_HEIGHT = 720
@@ -33,7 +36,7 @@ def load_engine(engine_path):
     with open(engine_path, 'rb') as f, trt.Runtime(TRT_LOGGER) as runtime:
         return runtime.deserialize_cuda_engine(f.read())
  
-path ='/home/simon/Desktop/200_8batch_18net_fp16.engine'
+path ='/home/simon/Desktop/100_batch6_sne.engine'
 
 def publish_image(imgdata):
     image_temp=Image()
@@ -59,7 +62,7 @@ class dataset():
 if __name__ == '__main__':
     palet_file = '/home/simon/catkin_ws/src/fyp/scripts/datasets/palette.txt'
     impalette = list(np.genfromtxt(palet_file, dtype=np.uint8).reshape(3 * 256))
-    sys.path.extend(['/home/simon/Desktop/ZeyuWANG/SNE-RoadSeg', '/home/simon/Desktop/ZeyuWANG/SNE-RoadSeg'])
+    #sys.path.extend(['/home/simon/Desktop/ZeyuWANG/SNE-RoadSeg', '/home/simon/Desktop/ZeyuWANG/SNE-RoadSeg'])
     ##### Setup for IntelRealSense #####
     # Configure depth and color streams
     pipeline = rs.pipeline()
@@ -73,7 +76,7 @@ if __name__ == '__main__':
     depth_sensor = device.query_sensors()[0]
     laser_pwr = depth_sensor.get_option(rs.option.laser_power)
     print(laser_pwr)
-    depth_sensor.set_option(rs.option.laser_power, 130)
+    depth_sensor.set_option(rs.option.laser_power, 360)
 
     found_rgb = False
     for s in device.sensors:
@@ -89,10 +92,11 @@ if __name__ == '__main__':
 
     # Start streaming
     pipeline.start(config)
-    dec_filter = rs.decimation_filter (5)   # Decimation - reduces depth frame density
-    spat_filter = rs.spatial_filter()          # Spatial    - edge-preserving spatial smoothing
-    temp_filter = rs.temporal_filter()    # Temporal   - reduces temporal noise
-    hole_filter = rs.hole_filling_filter() #hole filling
+
+    sne_model = SNE()
+    camParam = torch.tensor([[1361.400024, 0.000000e+00, 955.198975],
+                             [0.000000e+00, 1361.399902, 511.039001],
+                             [0.000000e+00, 0.000000e+00, 1.000000e+00]], dtype=torch.float32)  # camera parameters
     # 1. 建立模型，构建上下文管理器
     engine = load_engine(path)
     context = engine.create_execution_context()
@@ -105,11 +109,12 @@ if __name__ == '__main__':
                 input_shape_rgb = engine.get_binding_shape(binding)
                 input_size_rgb = trt.volume(input_shape_rgb) * engine.max_batch_size * np.dtype(np.float32).itemsize  # in bytes
                 device_input_rgb = cuda.mem_alloc(input_size_rgb)
+                device_input_depth = cuda.mem_alloc(input_size_rgb)
                 print(input_shape_rgb)
-            else:
-                input_shape_depth = engine.get_binding_shape(binding)
-                input_size_depth = trt.volume(input_shape_depth) * engine.max_batch_size * np.dtype(np.float32).itemsize  # in bytes
-                device_input_depth = cuda.mem_alloc(input_size_depth)
+            # else:
+            #     input_shape_depth = engine.get_binding_shape(binding)
+            #     input_size_depth = trt.volume(input_shape_depth) * engine.max_batch_size * np.dtype(np.float32).itemsize  # in bytes
+            #     device_input_depth = cuda.mem_alloc(input_size_depth)
         else:  # and one output
             output_shape = engine.get_binding_shape(binding)
             # create page-locked memory buffers (i.e. won't be swapped to disk)
@@ -138,17 +143,11 @@ if __name__ == '__main__':
             if not depth_frame or not color_frame:
                 continue
 
-            ### Here I insert some filters that may improve the prediction
-            ### May turn on and off to test which config is better
-
-            #depth_frame = spat_filter.process(depth_frame)
-            #depth_frame = dec_filter.process(depth_frame)
-            #depth_frame = hole_filter.process(depth_frame)
-            depth_frame = temp_filter.process(depth_frame)
-
             # Convert images to numpy arrays
             depth_image = np.asanyarray(depth_frame.get_data())
             rgb_image = np.asanyarray(color_frame.get_data())
+
+            
 
             image = cv2.resize(rgb_image,(1248,384))
             image = torch.tensor(image.astype(np.float32) / 1000)
@@ -156,9 +155,14 @@ if __name__ == '__main__':
             image = image.transpose(1, 3).transpose(2,3).numpy()
 
             imagedepth = cv2.resize(depth_image,(1248,384))
-            imagedepth = torch.tensor(imagedepth.astype(np.float32) / 65536)
-            imagedepth = imagedepth.unsqueeze(dim=0).unsqueeze(dim=0)
+            normal = sne_model(torch.tensor(imagedepth.astype(np.float32)/1000),camParam)
+            #imagedepth = torch.tensor(imagedepth.astype(np.float32) / 65536)
+            imagedepth = normal.unsqueeze(dim=0)
+            print("!!!")
+            print(imagedepth.shape)
             imagedepth = imagedepth.numpy()
+            
+            
             
             rgb_input = np.array(image, dtype=np.float32, order='C')
             depth_input = np.array(imagedepth, dtype=np.float32, order='C')

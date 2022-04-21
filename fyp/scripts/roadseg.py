@@ -61,7 +61,8 @@ if __name__ == '__main__':
     depth_sensor = device.query_sensors()[0]
     laser_pwr = depth_sensor.get_option(rs.option.laser_power)
     print(laser_pwr)
-    depth_sensor.set_option(rs.option.laser_power, 360)
+    depth_sensor.set_option(rs.option.laser_power, 130)
+    #depth_sensor.set_option(rs.option.holes_fill, True)
 
     found_rgb = False
     for s in device.sensors:
@@ -112,12 +113,12 @@ if __name__ == '__main__':
 
             # Convert images to numpy arrays
             depth_image = np.asanyarray(depth_frame.get_data())
-            rgb_image = np.asanyarray(color_frame.get_data())
+            rgb_image_ori = np.asanyarray(color_frame.get_data())
 
             # if you want to use your own data, please modify rgb_image, depth_image, camParam and use_size correspondingly.
             # rgb_image = cv2.cvtColor(cv2.imread(os.path.join('examples', 'rgb.png')), cv2.COLOR_BGR2RGB)
             # depth_image = cv2.imread(os.path.join('examples', '1.png'), cv2.IMREAD_ANYDEPTH)
-            oriHeight, oriWidth, _ = rgb_image.shape
+            oriHeight, oriWidth, _ = rgb_image_ori.shape
             oriSize = (oriWidth, oriHeight)
 
             ####### GPU
@@ -125,7 +126,7 @@ if __name__ == '__main__':
 
             # resize image to enable sizes divide 32
             use_size = (1248, 384)
-            rgb_image = torch.tensor(rgb_image.astype(np.float32) / 1000).cuda()
+            rgb_image = torch.tensor(rgb_image_ori.astype(np.float32) / 1000).cuda()
             depth_image = torch.tensor(depth_image.astype(np.float32) / 65535).cuda()
 
             # normal_image = sne_model_gpu(depth_image, camParam_gpu)
@@ -158,14 +159,17 @@ if __name__ == '__main__':
                 impalette = list(np.genfromtxt(palet_file, dtype=np.uint8).reshape(3 * 256))
                 pred_img = tensor2labelim(pred, impalette)
                 pred_img = cv2.resize(pred_img, oriSize)
+                img_add = cv2.addWeighted(pred_img, 0.5,rgb_image_ori, 0.5, 0)
+                cv2.imshow('result',img_add)
                 
                 # prob_map = tensor2confidencemap(pred)
                 # prob_map = cv2.resize(prob_map, oriSize)
 
                 # Show images
                 if True:
-                    cv2.namedWindow('pred_img', cv2.WINDOW_AUTOSIZE)
-                    cv2.imshow('pred_img', pred_img)
+                    
+                    #cv2.namedWindow('pred_img', cv2.WINDOW_AUTOSIZE)
+                    #cv2.imshow('pred_img', pred_img)
                     publish_image(pred_img)
 
                     # cv2.namedWindow('prob_map', cv2.WINDOW_AUTOSIZE)

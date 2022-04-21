@@ -128,7 +128,7 @@ class BaseModel():
             if isinstance(name, str):
                 load_filename = '%s_net_%s.pth' % (epoch, name)
                 #load_path = os.path.join(self.save_dir, load_filename)
-                load_path = '/home/simon/catkin_ws/src/fyp/scripts/checkpoints/0330_test/best_net_RoadSeg.pth'
+                load_path = '/home/simon/catkin_ws/src/fyp/scripts/checkpoints/200epoch_batch8_18net/best_net_RoadSeg.pth'
                 net = getattr(self, 'net' + name)
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
