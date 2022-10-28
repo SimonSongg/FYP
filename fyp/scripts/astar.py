@@ -7,11 +7,9 @@ import rospy
 from geometry_msgs.msg import Pose2D, Vector3
 from std_msgs.msg import Float64MultiArray
 
-import MemapAStar
 
 pub = rospy.Publisher('speed_info', Vector3, queue_size = 5)
 
-memap = MemapAStar.Memap(r'pointcloud.xlsx')
 # 参数
 #MAG_YAW_OFFSET = 0.10402162   # 磁北与正北之间的矫正(radius)
 PID_P_FACTOR = 200.0 #PID P系数 正数
