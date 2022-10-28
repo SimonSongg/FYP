@@ -89,6 +89,7 @@ def callbackCurrentPos(pos):
     else:
         usepos[0] = x_ceil
         usepos[1] = y_floor
+<<<<<<< Updated upstream
     if usepos == finalTarget:
         print('arrived target')
     else:
@@ -98,6 +99,15 @@ def callbackCurrentPos(pos):
         pubdata.y = a[1][1]
         print(pubdata)
         pub.publish(pubdata)
+=======
+        
+    a = search(grid,usepos,finalTarget,cost,heuristic)
+    pubdata = Pose2D()
+    pubdata.x = a[1][0]
+    pubdata.y = a[1][1]
+    print(pubdata)
+    pub.publish(pubdata)
+>>>>>>> Stashed changes
     
     
 #function to search the path
