@@ -33,3 +33,4 @@ The performance comparison with TensorRT acceleration
 
 Please check the report for more details about this project:
  [report.pdf](https://github.com/SimonSongg/FYP/files/9924209/UNNC-FYP-Template-updated.on.March.2021.1.pdf)
+ A simple video demo could be found [here](https://www.youtube.com/watch?v=eYJ18sTPcjE).
