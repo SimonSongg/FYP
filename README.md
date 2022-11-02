@@ -31,5 +31,5 @@ The performance comparison with TensorRT acceleration
 |     Frame rate loss     |     18.96%      |     16.54%    |     6.91%    |     5.37%    |                                |
 
 
-Please check the report more details about this project:
+Please check the report for more details about this project:
  [report.pdf](https://github.com/SimonSongg/FYP/files/9924209/UNNC-FYP-Template-updated.on.March.2021.1.pdf)
